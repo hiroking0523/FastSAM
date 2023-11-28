@@ -211,6 +211,14 @@ class FastSAMPrompt:
             retina, 
             withContours,
         )
+        # ここから追加: 境界ボックスを描画する
+        # print(bboxes)
+        if bboxes is not None:
+            for bbox in bboxes:
+                x1, y1, x2, y2 = bbox
+                # 座標を整数に変換
+                x1, y1, x2, y2 = [int(coord) for coord in bbox]
+                result = cv2.rectangle(result, (x1, y1), (x2, y2), (0, 255, 0), 2)  # 緑色の境界ボックスを描画
 
         path = os.path.dirname(os.path.abspath(output_path))
         if not os.path.exists(path):

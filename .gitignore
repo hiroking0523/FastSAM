@@ -7,3 +7,8 @@ weights
 build/
 *.egg-info/
 gradio_cached_examples
+myenv
+img1
+.vscode
+movie
+output

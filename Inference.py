@@ -4,7 +4,8 @@ import ast
 import torch
 from PIL import Image
 from utils.tools import convert_box_xywh_to_xyxy
-
+from PIL import ImageDraw
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -70,15 +71,16 @@ def parse_args():
     )
     return parser.parse_args()
 
-
 def main(args):
-    # load model
+    bboxes = []  # 空のリストを初期化
     model = FastSAM(args.model_path)
     args.point_prompt = ast.literal_eval(args.point_prompt)
     args.box_prompt = convert_box_xywh_to_xyxy(ast.literal_eval(args.box_prompt))
     args.point_label = ast.literal_eval(args.point_label)
     input = Image.open(args.img_path)
     input = input.convert("RGB")
+    # 推論前のタイムスタンプ
+    start_time = time.time()
     everything_results = model(
         input,
         device=args.device,
@@ -87,6 +89,28 @@ def main(args):
         conf=args.conf,
         iou=args.iou    
         )
+    # 推論後のタイムスタンプ
+    end_time = time.time()
+
+    # 推論にかかった時間を計算
+    inference_time = end_time - start_time
+    print(f"Inference Time: {inference_time} seconds")
+    # for result in everything_results:
+    #     for box in result.boxes:
+    #         # box.xyxy はテンソルであり、[x1, y1, x2, y2] の座標を含む
+    #         xyxy = box.xyxy[0].tolist()  # テンソルをリストに変換
+    #         x1, y1, x2, y2 = xyxy
+
+    #         # confidence と class_id を取得
+    #         confidence = box.conf[0].item()  # テンソルから値を抽出
+    #         class_id = box.cls[0].item()
+
+    #         # confidenceが0.9以上の場合のみ出力
+    #         if confidence >= 0.5:
+    #             # print(f"Bounding box coordinates: {x1}, {y1}, {x2}, {y2}")
+    #             # print(f"Confidence: {confidence}")
+    #             # print(f"Class ID: {class_id}")
+    #             bboxes.append([x1, y1, x2, y2])
     bboxes = None
     points = None
     point_label = None
@@ -112,10 +136,7 @@ def main(args):
         point_label = point_label,
         withContours=args.withContours,
         better_quality=args.better_quality,
-    )
-
-
-
+    )    
 
 if __name__ == "__main__":
     args = parse_args()
